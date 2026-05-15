@@ -1,36 +1,109 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CityDesk — Gestão de Chamados Urbanos
 
-## Getting Started
+Dashboard SaaS para prefeituras e empresas de facilities. Monitore, filtre e responda ocorrências reportadas por cidadãos (buracos, iluminação, lixo, etc.).
 
-First, run the development server:
+---
 
+## Stack
+
+| Camada | Tecnologia |
+|--------|-----------|
+| Framework | Next.js 16 (App Router, Server Components) |
+| Linguagem | TypeScript strict |
+| Estilos | Tailwind CSS v4 (design system via CSS vars) |
+| Banco | PostgreSQL — Neon Serverless |
+| ORM | Prisma v7 + `@prisma/adapter-pg` |
+| Auth | NextAuth v5 (Google OAuth + Credentials) |
+| Estado | Tanstack Query v5 |
+| Gráficos | Recharts |
+| Mapa | Leaflet + React-Leaflet (dynamic import) |
+| Forms | React Hook Form + Zod v4 |
+| Toasts | Sonner |
+
+---
+
+## Decisões técnicas
+
+### App Router + Server Components por padrão
+Dados buscados no servidor onde possível (menos JS no cliente). `"use client"` apenas onde necessário: eventos, hooks, Leaflet.
+
+### Tanstack Query em vez de só Server Actions
+Server Components buscam dados iniciais. Client components usam TQ para refetch otimista, cache com `staleTime`, invalidação granular após mutações. Server Actions sozinhos não oferecem cache de lado cliente.
+
+### Leaflet com `dynamic()` e `ssr: false`
+Leaflet depende de `window` e `document`. Import direto quebra o build. Dynamic import com `ssr: false` isola o problema sem hacks de `typeof window`.
+
+### Prisma v7 com adapter
+Prisma v7 removeu URLs do schema — passadas via `PrismaPg` adapter no construtor. Permite conexões pool-aware sem configuração duplicada.
+
+### Zod v4 nas fronteiras
+Todos os inputs externos (forms, URL params, body de API routes) validados com Zod. Nunca confiamos em dados do cliente diretamente.
+
+---
+
+## Setup local
+
+### 1. Clone e instale
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/your-username/citydesk
+cd citydesk
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Banco Neon
+1. Crie um projeto em [neon.tech](https://neon.tech) (free tier)
+2. Copie a connection string
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Variáveis de ambiente
+Crie `.env.local`:
+```env
+DATABASE_URL="postgresql://user:pass@ep-xxx.us-east-2.aws.neon.tech/neondb?sslmode=require"
+NEXTAUTH_SECRET="run: openssl rand -base64 32"
+NEXTAUTH_URL="http://localhost:3000"
+GOOGLE_CLIENT_ID=""
+GOOGLE_CLIENT_SECRET=""
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 4. Banco e seed
+```bash
+npm run db:push    # aplica o schema
+npm run db:seed    # 55 ocorrências em Fortaleza
+```
 
-## Learn More
+### 5. Dev server
+```bash
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+**Credenciais do seed:**
+- Admin: `admin@citydesk.com` / `admin123!`
+- Analyst: `analyst@citydesk.com` / `analyst123!`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Schema
 
-## Deploy on Vercel
+```
+User ─┬─ Occurrence ─┬─ Comment
+      │              └─ StatusHistory
+      ├─ Account (OAuth)
+      └─ Session
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```prisma
+User        { id, name, email, password, role: ADMIN|ANALYST }
+Occurrence  { id, title, category: POTHOLE|GARBAGE|LIGHTING|OTHER, status: OPEN|IN_PROGRESS|RESOLVED, lat, lng }
+StatusHistory { from, to, changedAt }
+Comment     { content, authorId, occurrenceId }
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## Próximos passos
+
+- **WebSockets** para atualizações em tempo real no mapa
+- **Testes E2E** com Playwright
+- **i18n** com `next-intl`
+- **Upload de fotos** via Supabase Storage / R2
+- **Rate limiting** com Upstash Redis
+- **PWA** para uso offline por equipes de campo

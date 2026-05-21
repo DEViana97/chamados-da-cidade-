@@ -8,18 +8,20 @@ datasource db {
 }
 
 model User {
-  id            String       @id @default(cuid())
-  name          String?
-  email         String       @unique
-  emailVerified DateTime?
-  password      String?
-  image         String?
-  role          Role         @default(ANALYST)
-  createdAt     DateTime     @default(now())
-  occurrences   Occurrence[] @relation("AssignedTo")
-  comments      Comment[]
-  accounts      Account[]
-  sessions      Session[]
+  id                      String                   @id @default(cuid())
+  name                    String?
+  email                   String                   @unique
+  emailVerified           DateTime?
+  password                String?
+  image                   String?
+  role                    Role                     @default(ANALYST)
+  createdAt               DateTime                 @default(now())
+  occurrences             Occurrence[]             @relation("AssignedTo")
+  comments                Comment[]
+  accounts                Account[]
+  sessions                Session[]
+  notifications           Notification[]
+  notificationPreferences NotificationPreference[]
 }
 
 enum Role {
@@ -109,4 +111,32 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+enum NotificationType {
+  OCCURRENCE_CREATED
+  STATUS_CHANGED
+  COMMENT_ADDED
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  body      String
+  read      Boolean          @default(false)
+  link      String?
+  createdAt DateTime         @default(now())
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model NotificationPreference {
+  id      String           @id @default(cuid())
+  userId  String
+  type    NotificationType
+  enabled Boolean          @default(true)
+  user    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type])
 }

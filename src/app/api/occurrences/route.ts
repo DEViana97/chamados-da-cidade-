@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { createOccurrenceSchema, filterSchema } from "@/lib/validations/occurrence"
+import { notifyOccurrenceCreated } from "@/lib/services/notifications"
 import type { Prisma } from "@/generated/prisma/client"
 
 export async function GET(request: NextRequest) {
@@ -75,6 +76,8 @@ export async function POST(request: NextRequest) {
       imageUrl: parsed.data.imageUrl || null,
     },
   })
+
+  void notifyOccurrenceCreated(occurrence, session.user.id)
 
   return NextResponse.json(occurrence, { status: 201 })
 }

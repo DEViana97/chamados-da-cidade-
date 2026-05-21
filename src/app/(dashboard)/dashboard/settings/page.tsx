@@ -8,8 +8,10 @@ import { Avatar } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Select } from "@/components/ui/select"
 import { useUsers, useUpdateUser } from "@/hooks/use-users"
+import { useNotificationPreferences, useUpdatePreference } from "@/hooks/use-notifications"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import type { NotificationType } from "@/types"
 
 type Tab = "profile" | "notifications" | "team"
 
@@ -31,6 +33,8 @@ export default function SettingsPage() {
   const isAdmin = session?.user?.role === "ADMIN"
   const { data: users } = useUsers()
   const updateUser = useUpdateUser()
+  const { data: preferences = [] } = useNotificationPreferences()
+  const updatePreference = useUpdatePreference()
 
   async function handleRoleChange(userId: string, role: string) {
     await updateUser.mutateAsync({ id: userId, role })
@@ -89,21 +93,35 @@ export default function SettingsPage() {
       {activeTab === "notifications" && (
         <div className="rounded-lg border border-border bg-surface p-6 space-y-4">
           <h2 className="text-sm font-semibold text-text">Preferências de notificação</h2>
-          {[
-            { label: "Nova ocorrência criada", desc: "Receber email ao criar ocorrência" },
-            { label: "Status atualizado", desc: "Receber email ao mudar status" },
-            { label: "Novo comentário", desc: "Receber email ao adicionar comentário" },
-            { label: "Resumo diário", desc: "Receber relatório diário por email" },
-          ].map(({ label, desc }) => (
-            <label key={label} className="flex items-center justify-between py-3 border-b border-border last:border-0 cursor-pointer">
-              <div>
-                <p className="text-sm text-text">{label}</p>
-                <p className="text-xs text-muted">{desc}</p>
-              </div>
-              <input type="checkbox" defaultChecked className="h-4 w-4 accent-accent rounded" />
-            </label>
-          ))}
-          <Button onClick={() => toast.success("Preferências salvas!")}>Salvar</Button>
+          {(
+            [
+              { type: "OCCURRENCE_CREATED" as NotificationType, label: "Nova ocorrência criada", desc: "Notificação ao registrar nova ocorrência" },
+              { type: "STATUS_CHANGED" as NotificationType, label: "Status atualizado", desc: "Notificação ao mudar status de ocorrência" },
+              { type: "COMMENT_ADDED" as NotificationType, label: "Novo comentário", desc: "Notificação ao adicionar comentário" },
+            ]
+          ).map(({ type, label, desc }) => {
+            const pref = preferences.find((p) => p.type === type)
+            const enabled = pref?.enabled ?? true
+            return (
+              <label key={type} className="flex items-center justify-between py-3 border-b border-border last:border-0 cursor-pointer">
+                <div>
+                  <p className="text-sm text-text">{label}</p>
+                  <p className="text-xs text-muted">{desc}</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={enabled}
+                  onChange={(e) => {
+                    updatePreference.mutate(
+                      { type, enabled: e.target.checked },
+                      { onSuccess: () => toast.success("Preferência atualizada") },
+                    )
+                  }}
+                  className="h-4 w-4 accent-accent rounded"
+                />
+              </label>
+            )
+          })}
         </div>
       )}
 

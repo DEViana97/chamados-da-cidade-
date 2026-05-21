@@ -3,9 +3,10 @@
 import { usePathname, useRouter } from "next/navigation"
 import { signOut } from "next-auth/react"
 import { useSession } from "next-auth/react"
-import { Bell, LogOut, User, ChevronRight } from "lucide-react"
+import { LogOut, User, ChevronRight } from "lucide-react"
 import { Avatar } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
+import { NotificationPanel } from "@/components/dashboard/notification-panel"
 import { useState } from "react"
 
 const breadcrumbLabels: Record<string, string> = {
@@ -46,10 +47,7 @@ export function Header() {
 
       {/* Right actions */}
       <div className="flex items-center gap-2">
-        <button className="p-2 text-muted hover:text-text hover:bg-surface-2 rounded transition-colors relative">
-          <Bell className="h-4 w-4" />
-          <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-accent" />
-        </button>
+        <NotificationPanel />
 
         <div className="relative">
           <button

@@ -1,6 +1,22 @@
-import type { Occurrence, User, Comment, StatusHistory, Category, Status, Role } from "@/generated/prisma/client"
+import type { Occurrence, User, Comment, StatusHistory, Category, Status, Role, NotificationType } from "@/generated/prisma/client"
 
-export type { Category, Status, Role }
+export type { Category, Status, Role, NotificationType }
+
+export type AppNotification = {
+  id: string
+  type: NotificationType
+  title: string
+  body: string
+  read: boolean
+  link: string | null
+  createdAt: string
+}
+
+export type NotificationPreference = {
+  id: string
+  type: NotificationType
+  enabled: boolean
+}
 
 export type OccurrenceWithRelations = Occurrence & {
   assignedTo: User | null

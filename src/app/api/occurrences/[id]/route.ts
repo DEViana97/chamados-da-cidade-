@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { updateOccurrenceSchema } from "@/lib/validations/occurrence"
+import { notifyStatusChanged } from "@/lib/services/notifications"
 import type { Status } from "@/generated/prisma/client"
 
 type RouteContext = { params: Promise<{ id: string }> }
@@ -43,8 +44,10 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
 
   const { status, ...rest } = parsed.data
 
+  const statusChanged = !!status && status !== existing.status
+
   const [occurrence] = await prisma.$transaction(async (tx) => {
-    if (status && status !== existing.status) {
+    if (statusChanged) {
       await tx.statusHistory.create({
         data: {
           occurrenceId: id,
@@ -59,6 +62,10 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
     })
     return [updated]
   })
+
+  if (statusChanged) {
+    void notifyStatusChanged(occurrence, status!, session.user.id)
+  }
 
   return NextResponse.json(occurrence)
 }

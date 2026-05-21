@@ -29,10 +29,20 @@ export default function NewOccurrencePage() {
   const [step, setStep] = useState(0)
   const createOcc = useCreateOccurrence()
 
-  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<CreateOccurrenceInput>({
+  const { register, handleSubmit, watch, setValue, trigger, formState: { errors } } = useForm<CreateOccurrenceInput>({
     resolver: zodResolver(createOccurrenceSchema),
     defaultValues: { latitude: 0, longitude: 0, category: "OTHER" },
   })
+
+  const stepFields: (keyof CreateOccurrenceInput)[][] = [
+    ["title", "description", "category"],
+    ["address", "latitude", "longitude"],
+  ]
+
+  async function handleNext() {
+    const valid = await trigger(stepFields[step])
+    if (valid) setStep((s) => s + 1)
+  }
 
   const values = watch()
 
@@ -171,7 +181,7 @@ export default function NewOccurrencePage() {
           {step < 2 ? (
             <Button
               type="button"
-              onClick={() => setStep((s) => s + 1)}
+              onClick={handleNext}
             >
               Próxima
               <ChevronRight className="h-4 w-4" />

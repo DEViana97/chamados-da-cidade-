@@ -6,8 +6,8 @@ export const createOccurrenceSchema = z.object({
   category: z.enum(["POTHOLE", "GARBAGE", "LIGHTING", "OTHER"], {
     error: "Categoria inválida",
   }),
-  latitude: z.number().min(-90).max(90),
-  longitude: z.number().min(-180).max(180),
+  latitude: z.number().min(-90).max(90).refine((v) => v !== 0, { message: "Selecione uma localização no mapa" }),
+  longitude: z.number().min(-180).max(180).refine((v) => v !== 0, { message: "Selecione uma localização no mapa" }),
   address: z.string().min(5, { error: "Endereço é obrigatório" }),
   imageUrl: z.string().url().optional().or(z.literal("")),
 })

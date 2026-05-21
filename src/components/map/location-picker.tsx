@@ -16,11 +16,18 @@ export function LocationPicker({ lat, lng, onSelect }: LocationPickerProps) {
   useEffect(() => {
     if (!mapRef.current || mapInstance.current) return
 
+    let cancelled = false
+
     async function init() {
       const L = (await import("leaflet")).default
       await import("leaflet/dist/leaflet.css")
 
-      const map = L.map(mapRef.current!, { center: [lat || -3.7172, lng || -38.5433], zoom: 13 })
+      if (cancelled || !mapRef.current) return
+
+      const container = mapRef.current as HTMLDivElement & { _leaflet_id?: number }
+      if (container._leaflet_id) delete container._leaflet_id
+
+      const map = L.map(mapRef.current, { center: [lat || -3.7172, lng || -38.5433], zoom: 13 })
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map)
 
       const icon = L.divIcon({
@@ -50,6 +57,7 @@ export function LocationPicker({ lat, lng, onSelect }: LocationPickerProps) {
     void init()
 
     return () => {
+      cancelled = true
       if (mapInstance.current) {
         ;(mapInstance.current as { remove: () => void }).remove()
         mapInstance.current = null

@@ -148,7 +148,7 @@ export default function OccurrenceDetailPage({ params }: { params: Promise<{ id:
         </div>
 
         {/* Right panel — mini map */}
-        <div className="rounded-lg border border-border overflow-hidden h-96 lg:h-auto">
+        <div className="rounded-lg border border-border overflow-hidden h-96 lg:h-auto relative z-0">
           <MiniMap lat={occ.latitude} lng={occ.longitude} title={occ.title} status={occ.status} />
         </div>
       </div>

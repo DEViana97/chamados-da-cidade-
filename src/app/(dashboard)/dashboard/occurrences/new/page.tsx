@@ -44,6 +44,7 @@ export default function NewOccurrencePage() {
     if (valid) setStep((s) => s + 1)
   }
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const values = watch()
 
   async function onSubmit(data: CreateOccurrenceInput) {

@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Bell, Check, CheckCheck, Info } from "lucide-react"
+import { Bell, CheckCheck, Info } from "lucide-react"
 import { useNotifications, useUnreadCount, useMarkRead, useMarkAllRead } from "@/hooks/use-notifications"
 import type { AppNotification } from "@/types"
 
@@ -35,14 +35,14 @@ function NotificationItem({ notification, onClose }: { notification: AppNotifica
       onClick={handleClick}
       className={`w-full text-left px-4 py-3 flex gap-3 hover:bg-surface-2 transition-colors ${!notification.read ? "bg-accent/5" : ""}`}
     >
-      <div className={`mt-0.5 h-2 w-2 rounded-full flex-shrink-0 ${!notification.read ? "bg-accent" : "bg-transparent"}`} />
+      <div className={`mt-0.5 h-2 w-2 rounded-full shrink-0 ${!notification.read ? "bg-accent" : "bg-transparent"}`} />
       <div className="flex-1 min-w-0">
         <p className={`text-sm ${!notification.read ? "font-medium text-text" : "text-muted"}`}>
           {notification.title}
         </p>
         <p className="text-xs text-muted mt-0.5 line-clamp-2">{notification.body}</p>
       </div>
-      <span className="text-xs text-muted flex-shrink-0 mt-0.5">{timeAgo(notification.createdAt)}</span>
+      <span className="text-xs text-muted shrink-0 mt-0.5">{timeAgo(notification.createdAt)}</span>
     </button>
   )
 }

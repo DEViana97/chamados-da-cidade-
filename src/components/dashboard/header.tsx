@@ -5,7 +5,6 @@ import { signOut } from "next-auth/react"
 import { useSession } from "next-auth/react"
 import { LogOut, User, ChevronRight } from "lucide-react"
 import { Avatar } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
 import { NotificationPanel } from "@/components/dashboard/notification-panel"
 import { useState } from "react"
 
